@@ -74,7 +74,11 @@ class TestMemoize(unittest.TestCase):
 
         test_obj = TestClass()
 
-        with patch.object(test_obj, 'a_method', wraps=test_obj.a_method) as mocked_method:
+        with patch.object(
+            test_obj,
+            'a_method',
+            wraps=test_obj.a_method
+        ) as mocked_method:
             result1 = test_obj.a_property
             result2 = test_obj.a_property
 
