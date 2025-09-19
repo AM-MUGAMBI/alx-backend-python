@@ -1,6 +1,5 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters  # <--- add filters here
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message, User
 from .serializers import ConversationSerializer, MessageSerializer
@@ -10,13 +9,16 @@ class ConversationViewSet(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
 
+    # Add filtering backend
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['participants__email', 'conversation_id']
+    ordering_fields = ['created_at']
+
     def create(self, request, *args, **kwargs):
-        # Expect participant IDs in request data to create a conversation
         participant_ids = request.data.get('participants', [])
         if not participant_ids or not isinstance(participant_ids, list):
             return Response({"error": "Participants list required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Fetch users
         participants = User.objects.filter(user_id__in=participant_ids)
         if participants.count() != len(participant_ids):
             return Response({"error": "Some participants not found."}, status=status.HTTP_400_BAD_REQUEST)
@@ -34,8 +36,11 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['sender__email', 'message_body']
+    ordering_fields = ['sent_at']
+
     def create(self, request, *args, **kwargs):
-        # Expect sender_id, conversation_id, message_body in request data
         sender_id = request.data.get('sender_id')
         conversation_id = request.data.get('conversation_id')
         message_body = request.data.get('message_body')
