@@ -17,7 +17,8 @@ Including another URLconf
 from django.urls import path, include
 
 urlpatterns = [
-    # other paths
-    path('api/', include('chats.urls')),  # this is needed and must contain "api/"
+    # other URL patterns...
+
+    path('api/', include('chats.urls')),  # Include your app URLs under /api/
 ]
 
