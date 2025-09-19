@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+INSTALLED_APPS = [
+    ...
+    'chats',
+]
+
