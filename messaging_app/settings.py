@@ -2,5 +2,6 @@
 INSTALLED_APPS = [
     ...
     'chats',
+    'rest_framework', 
 ]
 
