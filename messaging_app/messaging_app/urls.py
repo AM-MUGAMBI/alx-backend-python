@@ -14,11 +14,16 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    # other URL patterns...
+    path('admin/', admin.site.urls),
 
-    path('api/', include('chats.urls')),  # Include your app URLs under /api/
+    # Include chats API routes under /api/
+    path('api/', include('chats.urls')),
+
+    # Include DRF's login/logout views for the browsable API
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
