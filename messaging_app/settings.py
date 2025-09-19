@@ -1,9 +1,12 @@
 #!/usr/bin/python3
+
 INSTALLED_APPS = [
     ...
     'chats',
     'rest_framework',
-    REST_FRAMEWORK = {
+]
+
+REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -13,5 +16,4 @@ INSTALLED_APPS = [
     ],
 }
 
-]
 
