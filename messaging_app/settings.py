@@ -8,7 +8,10 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'chats',
+    'rest_framework_nested'
+
 ]
+
 
 # Django REST Framework settings
 REST_FRAMEWORK = {
