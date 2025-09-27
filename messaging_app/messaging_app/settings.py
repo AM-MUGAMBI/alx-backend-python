@@ -45,6 +45,9 @@ INSTALLED_APPS = [
 
     # Added for JWT authentication
     'rest_framework_simplejwt',
+
+    # Added for django-filter support
+    'django_filters',
 ]
 
 AUTH_USER_MODEL = 'chats.User'  # <-- Set custom user model here
@@ -145,6 +148,17 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ],
+
+    # Added default filter backends for django-filter and DRF search/order filters
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+
+    # (Optional) Global pagination — you can override per view if preferred
+    # 'DEFAULT_PAGINATION_CLASS': 'chats.pagination.MessagePagination',
+    # 'PAGE_SIZE': 20,
 }
 
 SIMPLE_JWT = {
