@@ -40,18 +40,17 @@ class ConversationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(conversation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [IsParticipantOfConversation]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class = MessageFilter  # <-- use custom filter class
+    filterset_class = MessageFilter  # Custom filtering
     search_fields = ['sender__email', 'message_body']
     ordering_fields = ['sent_at']
-    pagination_class = MessagePagination  # <-- paginate 20 per page
+    pagination_class = MessagePagination  # Pagination: 20 per page
 
     def get_queryset(self):
-        # Messages from conversations where the user is a participant
+        # Only messages in conversations where the user is participant
         return Message.objects.filter(conversation__participants=self.request.user)
 
     def create(self, request, *args, **kwargs):
@@ -68,7 +67,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         except Conversation.DoesNotExist:
             return Response({"error": "Conversation not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Check if sender is participant in conversation
+        # Check if sender is participant
         if sender not in conversation.participants.all():
             return Response({"error": "You are not a participant in this conversation."},
                             status=status.HTTP_403_FORBIDDEN)

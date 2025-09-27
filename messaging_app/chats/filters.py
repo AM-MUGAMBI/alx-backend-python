@@ -1,8 +1,11 @@
 import django_filters
-from django.db.models import Q
-from .models import Message, User
+from .models import Message
 
 class MessageFilter(django_filters.FilterSet):
+    """
+    Filter messages by participant user ID and sent_at datetime range.
+    """
+
     # Filter messages where the conversation includes a participant by user_id
     participant = django_filters.NumberFilter(method='filter_by_participant')
 
@@ -16,7 +19,8 @@ class MessageFilter(django_filters.FilterSet):
         model = Message
         fields = ['participant', 'sent_after', 'sent_before']
 
-    def filter_by_participant(self, queryset, name, value):
-        # Return messages whose conversation participants include user with id=value
+    def filter_by_participant(self, queryset, _, value):
+        """
+        Filter queryset to messages whose conversation participants include user with given user_id.
+        """
         return queryset.filter(conversation__participants__user_id=value)
-
