@@ -1,18 +1,20 @@
-from rest_framework import viewsets, status, filters  # <--- add filters here
+from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message, User
 from .serializers import ConversationSerializer, MessageSerializer
 
 class ConversationViewSet(viewsets.ModelViewSet):
-    queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
 
-    # Add filtering backend
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['participants__email', 'conversation_id']
     ordering_fields = ['created_at']
+
+    def get_queryset(self):
+        # Return only conversations where the user is a participant
+        return Conversation.objects.filter(participants=self.request.user)
 
     def create(self, request, *args, **kwargs):
         participant_ids = request.data.get('participants', [])
@@ -25,6 +27,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
         conversation = Conversation.objects.create()
         conversation.participants.set(participants)
+        conversation.participants.add(request.user)  # Ensure creator is also added
         conversation.save()
 
         serializer = self.get_serializer(conversation)
@@ -32,7 +35,6 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
 
 class MessageViewSet(viewsets.ModelViewSet):
-    queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
 
@@ -40,26 +42,24 @@ class MessageViewSet(viewsets.ModelViewSet):
     search_fields = ['sender__email', 'message_body']
     ordering_fields = ['sent_at']
 
-    def create(self, request, *args, **kwargs):
-        sender_id = request.data.get('sender_id')
-        conversation_id = request.data.get('conversation_id')
-        message_body = request.data.get('message_body')
+    def get_queryset(self):
+        # Only show messages from conversations the user is in
+        return Message.objects.filter(conversation__participants=self.request.user)
 
-        if not sender_id or not conversation_id or not message_body:
-            return Response({"error": "sender_id, conversation_id and message_body are required."},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            sender = User.objects.get(user_id=sender_id)
-        except User.DoesNotExist:
-            return Response({"error": "Sender not found."}, status=status.HTTP_404_NOT_FOUND)
+    def perform_create(self, serializer):
+        """
+        Automatically assign the logged-in user as the sender.
+        """
+        conversation_id = self.request.data.get('conversation_id')
+        if not conversation_id:
+            raise serializers.ValidationError({"error": "conversation_id is required."})
 
         try:
             conversation = Conversation.objects.get(conversation_id=conversation_id)
         except Conversation.DoesNotExist:
-            return Response({"error": "Conversation not found."}, status=status.HTTP_404_NOT_FOUND)
+            raise serializers.ValidationError({"error": "Conversation not found."})
 
-        message = Message.objects.create(sender=sender, conversation=conversation, message_body=message_body)
+        if self.request.user not in conversation.participants.all():
+            raise serializers.ValidationError({"error": "You are not a participant in this conversation."})
 
-        serializer = self.get_serializer(message)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer.save(sender=self.request.user, conversation=conversation)
