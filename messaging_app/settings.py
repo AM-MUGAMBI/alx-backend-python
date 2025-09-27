@@ -5,10 +5,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
 
     'rest_framework',
     'chats',
-    'rest_framework_nested'
+    'rest_framework_nested',
+    'django_filters', 
 
 ]
 

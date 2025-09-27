@@ -43,14 +43,14 @@ INSTALLED_APPS = [
     'chats',
     'rest_framework',
 
-    # Added for JWT authentication
+    # JWT authentication
     'rest_framework_simplejwt',
 
-    # Added for django-filter support
+    # django-filters support
     'django_filters',
 ]
 
-AUTH_USER_MODEL = 'chats.User'  # <-- Set custom user model here
+AUTH_USER_MODEL = 'chats.User'  # <-- Custom user model
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -135,6 +135,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 # ----------------------
 # JWT Authentication Setup
 # ----------------------
@@ -149,17 +150,18 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ],
 
-    # Added default filter backends for django-filter and DRF search/order filters
+    # Default filter backends for django-filter and DRF's search/order filters
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
 
-    # (Optional) Global pagination — you can override per view if preferred
+    # Optional global pagination (commented out to use pagination per view)
     # 'DEFAULT_PAGINATION_CLASS': 'chats.pagination.MessagePagination',
     # 'PAGE_SIZE': 20,
 }
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),    # token expires in 5 minutes
