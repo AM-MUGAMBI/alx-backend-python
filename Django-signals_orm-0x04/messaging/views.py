@@ -10,7 +10,11 @@ def get_threaded_replies(message):
     Recursive function to get replies in a threaded way.
     Each message includes its children replies.
     """
-    replies = Message.objects.filter(parent_message=message).select_related('sender', 'receiver')
+    replies = (
+        Message.objects.filter(parent_message=message)
+        .select_related('sender', 'receiver')
+        .prefetch_related('replies')
+    )
     thread = []
     for reply in replies:
         thread.append({
@@ -27,10 +31,11 @@ def user_messages(request):
     Using select_related and prefetch_related to optimize queries.
     """
     # Get top-level messages where user is sender and no parent message (root messages)
-    messages = Message.objects.filter(
-        sender=request.user,
-        parent_message__isnull=True
-    ).select_related('sender', 'receiver')
+    messages = (
+        Message.objects.filter(sender=request.user, parent_message__isnull=True)
+        .select_related('sender', 'receiver')
+        .prefetch_related('replies')
+    )
 
     # Build threaded message structure
     threaded_messages = []
