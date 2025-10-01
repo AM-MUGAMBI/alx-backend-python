@@ -13,7 +13,7 @@ def get_threaded_replies(message):
     replies = (
         Message.objects.filter(parent_message=message)
         .select_related('sender', 'receiver')
-        .prefetch_related('replies')
+        .only('id', 'sender', 'receiver', 'content', 'timestamp')
     )
     thread = []
     for reply in replies:
@@ -28,16 +28,14 @@ def get_threaded_replies(message):
 def user_messages(request):
     """
     View to display all messages for a user, with threaded replies.
-    Using select_related and prefetch_related to optimize queries.
+    Using custom manager to get unread messages for the user.
     """
-    # Get top-level messages where user is sender and no parent message (root messages)
     messages = (
-        Message.objects.filter(sender=request.user, parent_message__isnull=True)
+        Message.unread.unread_for_user(request.user)
+        .filter(parent_message__isnull=True)
         .select_related('sender', 'receiver')
-        .prefetch_related('replies')
     )
 
-    # Build threaded message structure
     threaded_messages = []
     for msg in messages:
         threaded_messages.append({
@@ -105,4 +103,4 @@ def home(request):
 def delete_user(request):
     user = request.user
     user.delete()
-    return redirect('/')  # Redirect to home page after deletion
+    return redirect('/')
