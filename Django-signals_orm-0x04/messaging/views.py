@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.views.decorators.cache import cache_page  # ✅ add this
 from django.http import HttpResponse
 from .models import Message
 
@@ -13,7 +14,7 @@ def get_threaded_replies(message):
     replies = (
         Message.objects.filter(parent_message=message)
         .select_related('sender', 'receiver')
-        .only('id', 'sender', 'receiver', 'content', 'timestamp')
+        .prefetch_related('replies')
     )
     thread = []
     for reply in replies:
@@ -24,16 +25,17 @@ def get_threaded_replies(message):
     return thread
 
 
+@cache_page(60)  # ✅ Cache this view for 60 seconds
 @login_required
 def user_messages(request):
     """
     View to display all messages for a user, with threaded replies.
-    Using custom manager to get unread messages for the user.
+    Using select_related and prefetch_related to optimize queries.
     """
     messages = (
-        Message.unread.unread_for_user(request.user)
-        .filter(parent_message__isnull=True)
+        Message.objects.filter(sender=request.user, parent_message__isnull=True)
         .select_related('sender', 'receiver')
+        .prefetch_related('replies')
     )
 
     threaded_messages = []
@@ -103,4 +105,4 @@ def home(request):
 def delete_user(request):
     user = request.user
     user.delete()
-    return redirect('/')
+    return redirect('/')  # Redirect to home page after deletion
