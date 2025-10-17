@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+
+# Django
+*.db
+*.pot
+*.pyc
+
+# Environments
+.env
+venv/
+env/
+.venv/
+
+# VS Code
+.vscode/
+
+# Byte-compiled / cache
+*.py[cod]
+*$py.class
+
+# Docker
+*.pid
+*.seed
+.docker/
+docker-compose.override.yml
+
+# Migrations (optional – only ignore if you auto-generate them)
+# **/migrations/*.py
+# **/migrations/*.pyc
+

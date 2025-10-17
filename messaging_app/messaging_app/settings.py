@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import timedelta
+import os  # <-- Added to access environment variables
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -54,12 +55,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'messaging_app.wsgi.application'
 
+# === UPDATED DATABASE CONFIGURATION ===
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('MYSQL_DATABASE', 'messaging_db'),
+        'USER': os.getenv('MYSQL_USER', 'messaging_user'),
+        'PASSWORD': os.getenv('MYSQL_PASSWORD', 'securepassword'),
+        'HOST': os.getenv('MYSQL_HOST', 'db'),
+        'PORT': os.getenv('MYSQL_PORT', '3306'),
     }
 }
+# === END OF UPDATE ===
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
