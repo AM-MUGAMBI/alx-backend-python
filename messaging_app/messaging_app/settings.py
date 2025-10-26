@@ -1,15 +1,16 @@
 from pathlib import Path
 from datetime import timedelta
-import os  # <-- Added to access environment variables
+import os  # To access environment variables
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-n08oafpgajbh4shg4ey)bfqmwivs$6j!0c^a8p&!54^z7xa6b4'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-n08oafpgajbh4shg4ey)bfqmwivs$6j!0c^a8p&!54^z7xa6b4')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
 
+# === INSTALLED APPS ===
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -55,33 +56,39 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'messaging_app.wsgi.application'
 
-# === UPDATED DATABASE CONFIGURATION ===
+# === DATABASE CONFIGURATION ===
+# This supports both local dev, Docker, and CI environments (like GitHub Actions)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('MYSQL_DATABASE', 'messaging_db'),
+        'NAME': os.getenv('MYSQL_DB', os.getenv('MYSQL_DATABASE', 'messaging_db')),
         'USER': os.getenv('MYSQL_USER', 'messaging_user'),
         'PASSWORD': os.getenv('MYSQL_PASSWORD', 'securepassword'),
-        'HOST': os.getenv('MYSQL_HOST', 'db'),
+        'HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),  # "db" in Docker, "127.0.0.1" in GitHub Actions
         'PORT': os.getenv('MYSQL_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
-# === END OF UPDATE ===
 
+# === PASSWORD VALIDATION ===
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# === GENERAL SETTINGS ===
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# === REST FRAMEWORK CONFIG ===
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'chats.permissions.IsParticipantOfConversation',
@@ -96,10 +103,11 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',  # Explicitly required
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
 
+# === JWT CONFIG ===
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),

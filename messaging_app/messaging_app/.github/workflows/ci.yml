@@ -1,4 +1,4 @@
-name: Django CI
+name: Django CI with Code Quality
 
 on:
   push:
@@ -35,22 +35,36 @@ jobs:
       MYSQL_DB: test_db
 
     steps:
+      # Step 1: Checkout source code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           python -m venv venv
           . venv/bin/activate
           pip install --upgrade pip
           pip install -r messaging_app/requirements.txt
+          pip install flake8 pytest pytest-cov coverage
 
-      - name: Wait for MySQL to be ready
+      # Step 4: Run Flake8 linting (fail if any errors)
+      - name: Lint with flake8
+        run: |
+          . venv/bin/activate
+          echo "Running flake8 checks..."
+          flake8 messaging_app --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 messaging_app --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+        continue-on-error: false
+
+      # Step 5: Wait for MySQL to be ready
+      - name: Wait for MySQL
         run: |
           echo "Waiting for MySQL..."
           for i in {1..30}; do
@@ -58,12 +72,21 @@ jobs:
             sleep 2
           done
 
-      - name: Run Django migrations
+      # Step 6: Run Django migrations
+      - name: Apply Migrations
         run: |
           . venv/bin/activate
           python manage.py migrate
 
-      - name: Run Django tests
+      # Step 7: Run tests with coverage
+      - name: Run Django Tests with Coverage
         run: |
           . venv/bin/activate
-          python manage.py test
+          pytest --cov=messaging_app --cov-report=xml --cov-report=html
+
+      # Step 8: Upload coverage report artifact
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
