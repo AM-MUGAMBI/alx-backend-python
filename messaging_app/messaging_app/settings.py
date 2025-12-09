@@ -58,17 +58,16 @@ WSGI_APPLICATION = 'messaging_app.wsgi.application'
 
 # === DATABASE CONFIGURATION ===
 # This supports both local dev, Docker, and CI environments (like GitHub Actions)
+
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('MYSQL_DB', os.getenv('MYSQL_DATABASE', 'messaging_db')),
-        'USER': os.getenv('MYSQL_USER', 'messaging_user'),
-        'PASSWORD': os.getenv('MYSQL_PASSWORD', 'securepassword'),
-        'HOST': os.getenv('MYSQL_HOST', '127.0.0.1'),  # "db" in Docker, "127.0.0.1" in GitHub Actions
-        'PORT': os.getenv('MYSQL_PORT', '3306'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ.get("MYSQL_DATABASE"),
+        "USER": os.environ.get("MYSQL_USER"),
+        "PASSWORD": os.environ.get("MYSQL_PASSWORD"),
+        "HOST": "db",  # matches service name in docker-compose.yml
+        "PORT": "3306",
     }
 }
 
