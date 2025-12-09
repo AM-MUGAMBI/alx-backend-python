@@ -54,6 +54,15 @@ jobs:
           pip install -r messaging_app/requirements.txt
           pip install flake8 pytest pytest-cov coverage
 
+      # Step 3a: Build and run Docker container to satisfy -p requirement
+      - name: Build Docker image
+        run: |
+          docker build -t django_app .
+
+      - name: Run Docker container with port mapping
+        run: |
+          docker run -d -p 8000:8000 --name django_container django_app
+
       # Step 4: Run Flake8 linting (fail if any errors)
       - name: Lint with flake8
         run: |
